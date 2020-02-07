@@ -16,4 +16,4 @@ jobs:
           command: npm test
       - run:
           name: Gas report
-          comand: npx codechecks
+          command: npx codechecks
