@@ -18,11 +18,15 @@
  *
  */
 
-// const HDWalletProvider = require('truffle-hdwallet-provider');
-// const infuraKey = "fj4jll3k.....";
-//
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+const HDWalletProvider = require('@truffle/hdwallet-provider');
+const fs = require('fs');
+
+let mnemonic;
+try {
+  mnemonic = fs.readFileSync(".secret").toString().trim();
+} catch (e) {
+  mnemonic = 'INVALID';
+}
 
 module.exports = {
   /**
@@ -68,6 +72,17 @@ module.exports = {
       // timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
       // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     // },
+
+    rskTestnet: {
+      provider: () => new HDWalletProvider(mnemonic, 'https://public-node.testnet.rsk.co', 0, 1, true, `m/44'/37310'/0'/0/`),
+      network_id: 31,
+      gasPrice: 6000000000,
+    },
+    rskMainnet: {
+      provider: () => new HDWalletProvider(mnemonic, 'https://public-node.rsk.co', 0, 1, true, `m/44'/137'/0'/0/`),
+      network_id: 30,
+      gasPrice: 60000000,
+    },
 
     // Useful for private networks
     // private: {

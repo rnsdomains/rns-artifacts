@@ -26,6 +26,7 @@
   "devDependencies": {
     "@codechecks/client": "^0.1.10",
     "@openzeppelin/test-helpers": "^0.5.4",
+    "@truffle/hdwallet-provider": "^1.0.30",
     "eth-ens-namehash": "^2.0.8",
     "eth-gas-reporter": "^0.2.14",
     "solium": "^1.2.5",
