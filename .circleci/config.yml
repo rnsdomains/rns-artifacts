@@ -1,0 +1,22 @@
+version: 2.1
+jobs:
+  build:
+    working_directory: ~/tpm
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - run:
+          name: Install rns-artifacts
+          command: |
+                    cd ~/tpm/
+                    npm install
+      - run:
+          name: Run Unit Tests
+          command: npm test
+      - run:
+          name: Lint
+          command: npm run lint
+      - run:
+          name: Gas report
+          command: npx codechecks

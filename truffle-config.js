@@ -18,11 +18,15 @@
  *
  */
 
-// const HDWalletProvider = require('truffle-hdwallet-provider');
-// const infuraKey = "fj4jll3k.....";
-//
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+const HDWalletProvider = require('@truffle/hdwallet-provider');
+const fs = require('fs');
+
+let mnemonic;
+try {
+  mnemonic = fs.readFileSync(".secret").toString().trim();
+} catch (e) {
+  mnemonic = 'INVALID';
+}
 
 module.exports = {
   /**
@@ -69,6 +73,17 @@ module.exports = {
       // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     // },
 
+    rskTestnet: {
+      provider: () => new HDWalletProvider(mnemonic, 'https://public-node.testnet.rsk.co', 0, 1, true, `m/44'/37310'/0'/0/`),
+      network_id: 31,
+      gasPrice: 6000000000,
+    },
+    rskMainnet: {
+      provider: () => new HDWalletProvider(mnemonic, 'https://public-node.rsk.co', 0, 1, true, `m/44'/137'/0'/0/`),
+      network_id: 30,
+      gasPrice: 60000000,
+    },
+
     // Useful for private networks
     // private: {
       // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
@@ -80,12 +95,13 @@ module.exports = {
   // Set default mocha options here, use special reporters etc.
   mocha: {
     // timeout: 100000
+    reporter: 'eth-gas-reporter',
   },
 
   // Configure your compilers
   compilers: {
     solc: {
-      // version: "0.5.1",    // Fetch exact version from solc-bin (default: truffle's version)
+      version: "^0.5.11",    // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
       //  optimizer: {
