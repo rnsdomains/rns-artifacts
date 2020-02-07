@@ -14,3 +14,6 @@ jobs:
       - run:
           name: Run Unit Tests
           command: npm test
+      - run:
+          name: Gas report
+          comand: npx codechecks

@@ -23,8 +23,10 @@
     "@rsksmart/rns-registry": "^1.0.1"
   },
   "devDependencies": {
+    "@codechecks/client": "^0.1.10",
     "@openzeppelin/test-helpers": "^0.5.4",
     "eth-ens-namehash": "^2.0.8",
+    "eth-gas-reporter": "^0.2.14",
     "truffle": "^5.1.12"
   }
 }
