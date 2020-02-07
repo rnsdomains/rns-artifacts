@@ -2,12 +2,8 @@
   "name": "@rsksmart/rns-artifacts",
   "version": "2.0.0",
   "description": "RNS Solidity artifacts.",
-  "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
-    "test": "truffle test"
+    "test": "npx truffle test"
   },
   "repository": {
     "type": "git",
@@ -22,5 +18,13 @@
   "bugs": {
     "url": "https://github.com/rnsdomains/rns-artifacts/issues"
   },
-  "homepage": "https://github.com/rnsdomains/rns-artifacts#readme"
+  "homepage": "https://github.com/rnsdomains/rns-artifacts#readme",
+  "dependencies": {
+    "@rsksmart/rns-registry": "^1.0.1"
+  },
+  "devDependencies": {
+    "@openzeppelin/test-helpers": "^0.5.4",
+    "eth-ens-namehash": "^2.0.8",
+    "truffle": "^5.1.12"
+  }
 }
