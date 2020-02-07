@@ -1,0 +1,26 @@
+{
+  "name": "@rsksmart/rns-artifacts",
+  "version": "2.0.0",
+  "description": "RNS Solidity artifacts.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rnsdomains/rns-artifacts.git"
+  },
+  "keywords": [
+    "rsk",
+    "rif",
+    "rns"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rnsdomains/rns-artifacts/issues"
+  },
+  "homepage": "https://github.com/rnsdomains/rns-artifacts#readme"
+}
