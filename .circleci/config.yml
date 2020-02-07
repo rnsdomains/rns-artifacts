@@ -1,0 +1,5 @@
+version: 2.1
+steps:
+  - checkout
+  - run: npm install
+  - run: npm test
