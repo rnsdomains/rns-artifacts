@@ -3,7 +3,8 @@
   "version": "2.0.0",
   "description": "RNS Solidity artifacts.",
   "scripts": {
-    "test": "npx truffle test"
+    "test": "npx truffle test",
+    "lint": "npx solium -d ."
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,7 @@
     "@openzeppelin/test-helpers": "^0.5.4",
     "eth-ens-namehash": "^2.0.8",
     "eth-gas-reporter": "^0.2.14",
+    "solium": "^1.2.5",
     "truffle": "^5.1.12"
   }
 }

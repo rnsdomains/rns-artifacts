@@ -9,7 +9,12 @@ Setup:
 npm i
 ```
 
-Run unit tests:
+Run unit tests + gas reporter:
 ```
 npm test
+```
+
+Lint:
+```
+npm run lint
 ```
