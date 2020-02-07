@@ -9,7 +9,7 @@ contract Migrations {
     }
 
     modifier restricted() {
-        require(msg.sender == owner, "Restricted")
+        require(msg.sender == owner, "Restricted");
         _;
     }
 
