@@ -41,7 +41,17 @@ contract('DummyStringUtils - toLowerCase', async () => {
     assert.equal(await dummyStringUtils.str(node), text.toLowerCase());
   });
 
-  afterEach(async () => {
+  it('should return lowerCase string when sending any character', async () => { 
+    const text = 'Te#%*(S1tiN3g0';
+    await dummyStringUtils.setStr(node, text);
 
+    assert.equal(await dummyStringUtils.str(node), text.toLowerCase());
+  });
+
+  it('should return lowerCase string when sending the entire abc uppercase', async () => { 
+    const text = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    await dummyStringUtils.setStr(node, text);
+
+    assert.equal(await dummyStringUtils.str(node), text.toLowerCase());
   });
 });
