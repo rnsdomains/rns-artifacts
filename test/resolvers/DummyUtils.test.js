@@ -54,4 +54,11 @@ contract('DummyStringUtils - toLowerCase', async () => {
 
     assert.equal(await dummyStringUtils.str(node), text.toLowerCase());
   });
+
+  it('should return lowerCase string when sending a large string', async () => { 
+    const text = 'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    await dummyStringUtils.setStr(node, text);
+
+    assert.equal(await dummyStringUtils.str(node), text.toLowerCase());
+  });
 });
