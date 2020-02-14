@@ -47,4 +47,11 @@ contract('StringUtils - toLowerCase', async () => {
     
     assert.equal(result, text.toLowerCase());
   });
+
+  it('should return lowerCase string when sending the entire abc uppercase', async () => { 
+    const text = 'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const result = await stringUtils.toLowerCase(text);
+    
+    assert.equal(result, text.toLowerCase());
+  });
 });
