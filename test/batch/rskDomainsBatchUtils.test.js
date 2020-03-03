@@ -1,6 +1,14 @@
-const { createSecrets, validate } = require('../../util/batch/rskDomainsBatchUtils');
+const ERC677 = artifacts.require('ERC677');
+const RNS = artifacts.require('RNS');
+const NodeOwner = artifacts.require('NodeOwner');
+const NamePrice = artifacts.require('NamePrice');
+const BytesUtils = artifacts.require('BytesUtils');
+const FIFSRegistrar = artifacts.require('FIFSRegistrar');
+
+const { createSecrets, validate, makeCommitments } = require('../../util/batch/rskDomainsBatchUtils');
 const { toBN } = require('web3-utils');
 const assert = require('assert');
+const namehash = require('eth-ens-namehash');
 
 describe('RSK Domains Batch Utils', () => {
   describe('create secrets', async () => {
@@ -14,6 +22,34 @@ describe('RSK Domains Batch Utils', () => {
   });
 
   describe('validate', () => {
+    it('should throw on less secrets than labels', () => {
+      assert.throws(function () {
+        validate(
+          ['label1', 'label2'],
+          '0x7eff3c48849197b1662365128e63564b457c3a36',
+          ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200'],
+          toBN('3'),
+        )
+      }, {
+        name: 'Error',
+        message: 'Invalid amount of secrets',
+      });
+    });
+
+    it('should throw on more secrets than labels', () => {
+      assert.throws(function () {
+        validate(
+          ['label1'],
+          '0x7eff3c48849197b1662365128e63564b457c3a36',
+          ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200', '0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200'],
+          toBN('3'),
+        )
+      }, {
+        name: 'Error',
+        message: 'Invalid amount of secrets',
+      });
+    });
+
     it('should throw on empty label', () => {
       assert.throws(function () {
         validate(
@@ -105,6 +141,56 @@ describe('RSK Domains Batch Utils', () => {
         ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200'],
         toBN('3'),
       );
+    })
+  })
+
+  contract('make commitments', (accounts) => {
+    beforeEach(async () => {
+      this.rif = await ERC677.new(
+        accounts[0],
+        web3.utils.toBN('1000000000000000000000'),
+        'RIF',
+        'RIF',
+        web3.utils.toBN('18'),
+      );
+
+      const rootNode = namehash.hash('rsk');
+
+      const rns = await RNS.new();
+      this.nodeOwner = await NodeOwner.new(rns.address, rootNode);
+      const namePrice = await NamePrice.new();
+
+      const bytesUtils = await BytesUtils.new();
+      await FIFSRegistrar.link('BytesUtils', bytesUtils.address);
+
+      this.fifs = await FIFSRegistrar.new(
+        this.rif.address,
+        this.nodeOwner.address,
+        accounts[1],
+        namePrice.address,
+      );
+    });
+
+    it('should create commitments for valid inputs', async () => {
+      const labels = ['label', 'label2'];
+      const owner = '0x7dbc5395d1cb5f829bc8eca20f16bed7bcecd7bf';
+      const secrets = [
+        '0xfdf8358dbbbd98fa607e4c0a2635125808dfcb3b5e98b12fe1915e63232423dd',
+        '0x7dc8c3c709fe6c154f163ae902f3379677ae184f120a8e887fc8e1cd07532bab',
+      ];
+
+      const expected = [
+        '0x9f030769dbcbe6047670465514ff96e98618b401447eff2798b7b278ef88ad10',
+        '0xad5faf393b9ba60bfb8601dee9a76d8bab630fe3ccea50303919f92dd10ba1c7',
+      ];
+
+      const commitments = await makeCommitments(this.fifs.makeCommitment, labels, owner, secrets);
+
+      assert.equal(commitments.length, expected.length);
+
+      for (let i = 0; i < expected.length; i += 1) {
+        assert.equal(commitments[i], expected[i]);
+      }
     })
   })
 })

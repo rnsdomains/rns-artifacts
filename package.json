@@ -21,7 +21,9 @@
   },
   "homepage": "https://github.com/rnsdomains/rns-artifacts#readme",
   "dependencies": {
-    "@rsksmart/rns-registry": "^1.0.1"
+    "@rsksmart/erc677": "^1.0.1",
+    "@rsksmart/rns-registry": "^1.0.1",
+    "@rsksmart/rns-rskregistrar": "^1.2.0"
   },
   "devDependencies": {
     "@codechecks/client": "^0.1.10",

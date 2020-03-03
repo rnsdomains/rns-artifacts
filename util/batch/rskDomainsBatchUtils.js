@@ -1,4 +1,4 @@
-const { randomHex, isAddress, isHexStrict, isBN } = require('web3-utils');
+const { randomHex, isAddress, isHexStrict, isBN, sha3 } = require('web3-utils');
 
 /**
  * Creates an array of n secrets of 32 bytes
@@ -23,6 +23,10 @@ function createSecrets(n) {
  * @param {BN} duration for all registered domains
  */
 function validate(labels, owner, secrets, duration) {
+  if(labels.length != secrets.length) {
+    throw new Error('Invalid amount of secrets');
+  }
+
   for (let i = 0; i < labels.length; i+=1) {
     if (!labels[i].length > 0 || !labels[i].match(/^[0-9a-z]+$/)) {
       throw new Error(`Invalid label: ${labels[i]}`);
@@ -44,7 +48,27 @@ function validate(labels, owner, secrets, duration) {
   }
 }
 
+/**
+ * Creates a commitment for each label. Assumes that parameters were validated with `validate`.
+ * @param {Promise<tx>} makeCommitment web3 contract function to make commitment
+ * @param {string[]} labels of the domains to be registered
+ * @param {address} owner for all registered domains
+ * @param {bytes32[]} secrets for each of the names
+ * @returns {bytes32[]} commitments created
+ */
+async function makeCommitments(makeCommitment, labels, owner, secrets) {
+  let commitments = [];
+
+  for (let i = 0; i < labels.length; i+=1) {
+    const commitment = await makeCommitment(sha3(labels[i]), owner, secrets[i]);
+    commitments.push(commitment);
+  }
+
+  return commitments;
+}
+
 module.exports = {
   createSecrets,
   validate,
+  makeCommitments,
 };
