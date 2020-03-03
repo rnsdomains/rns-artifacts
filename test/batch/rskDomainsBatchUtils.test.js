@@ -1,8 +1,18 @@
-const { validate } = require('../../util/batch/rskDomainsBatchUtils');
+const { createSecrets, validate } = require('../../util/batch/rskDomainsBatchUtils');
 const { toBN } = require('web3-utils');
 const assert = require('assert');
 
 describe('RSK Domains Batch Utils', () => {
+  describe('create secrets', async () => {
+    it('should create 10 random secrets', async () => {
+      const secrets = createSecrets(10);
+
+      for(let i = 0; i < 10; i+=1) {
+        assert.equal(secrets[i].length, 66);
+      }
+    })
+  });
+
   describe('validate', () => {
     it('should throw on empty label', () => {
       assert.throws(function () {

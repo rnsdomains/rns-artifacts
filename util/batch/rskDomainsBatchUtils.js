@@ -1,5 +1,19 @@
-const assert = require('assert');
-const { isAddress, isHexStrict, isBN } = require('web3-utils');
+const { randomHex, isAddress, isHexStrict, isBN } = require('web3-utils');
+
+/**
+ * Creates an array of n secrets of 32 bytes
+ * @param {number} n amount of secrets to create
+ * @returns {bytes32[]} secrets
+ */
+function createSecrets(n) {
+  let secrets = [];
+
+  for (let i = 0; i < n; i+=1) {
+    secrets.push(randomHex(32));
+  }
+
+  return secrets;
+}
 
 /**
  * Validates data for RSK Domains Batch
@@ -8,7 +22,7 @@ const { isAddress, isHexStrict, isBN } = require('web3-utils');
  * @param {bytes32[]} secrets for each of the names
  * @param {BN} duration for all registered domains
  */
-function validate (labels, owner, secrets, duration) {
+function validate(labels, owner, secrets, duration) {
   for (let i = 0; i < labels.length; i+=1) {
     if (!labels[i].length > 0 || !labels[i].match(/^[0-9a-z]+$/)) {
       throw new Error(`Invalid label: ${labels[i]}`);
@@ -31,5 +45,6 @@ function validate (labels, owner, secrets, duration) {
 }
 
 module.exports = {
+  createSecrets,
   validate,
 };
