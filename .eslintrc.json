@@ -1,0 +1,25 @@
+{
+    "env": {
+        "commonjs": true,
+        "es6": true,
+        "node": true
+    },
+    "extends": [
+        "airbnb-base"
+    ],
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly",
+        "artifacts": "readonly",
+        "describe": "readonly",
+        "it": "readonly",
+        "contract": "readonly",
+        "web3": "readonly",
+        "beforeEach": "readonly"
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018
+    },
+    "rules": {
+    }
+}

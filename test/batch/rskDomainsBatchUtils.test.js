@@ -5,31 +5,31 @@ const NamePrice = artifacts.require('NamePrice');
 const BytesUtils = artifacts.require('BytesUtils');
 const FIFSRegistrar = artifacts.require('FIFSRegistrar');
 
-const { createSecrets, validate, makeCommitments } = require('../../util/batch/rskDomainsBatchUtils');
 const { toBN } = require('web3-utils');
 const assert = require('assert');
 const namehash = require('eth-ens-namehash');
+const { createSecrets, validate, makeCommitments } = require('../../util/batch/rskDomainsBatchUtils');
 
 describe('RSK Domains Batch Utils', () => {
   describe('create secrets', async () => {
     it('should create 10 random secrets', async () => {
       const secrets = createSecrets(10);
 
-      for(let i = 0; i < 10; i+=1) {
+      for (let i = 0; i < 10; i += 1) {
         assert.equal(secrets[i].length, 66);
       }
-    })
+    });
   });
 
   describe('validate', () => {
     it('should throw on less secrets than labels', () => {
-      assert.throws(function () {
+      assert.throws(() => {
         validate(
           ['label1', 'label2'],
           '0x7eff3c48849197b1662365128e63564b457c3a36',
           ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200'],
           toBN('3'),
-        )
+        );
       }, {
         name: 'Error',
         message: 'Invalid amount of secrets',
@@ -37,13 +37,13 @@ describe('RSK Domains Batch Utils', () => {
     });
 
     it('should throw on more secrets than labels', () => {
-      assert.throws(function () {
+      assert.throws(() => {
         validate(
           ['label1'],
           '0x7eff3c48849197b1662365128e63564b457c3a36',
           ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200', '0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200'],
           toBN('3'),
-        )
+        );
       }, {
         name: 'Error',
         message: 'Invalid amount of secrets',
@@ -51,13 +51,13 @@ describe('RSK Domains Batch Utils', () => {
     });
 
     it('should throw on empty label', () => {
-      assert.throws(function () {
+      assert.throws(() => {
         validate(
           [''],
           '0x7eff3c48849197b1662365128e63564b457c3a36',
           ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200'],
           toBN('3'),
-        )
+        );
       }, {
         name: 'Error',
         message: 'Invalid label: ',
@@ -65,13 +65,13 @@ describe('RSK Domains Batch Utils', () => {
     });
 
     it('should throw on invalid label', () => {
-      assert.throws(function () {
+      assert.throws(() => {
         validate(
           ['&&&'],
           '0x7eff3c48849197b1662365128e63564b457c3a36',
           ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200'],
           toBN('3'),
-        )
+        );
       }, {
         name: 'Error',
         message: 'Invalid label: &&&',
@@ -79,13 +79,13 @@ describe('RSK Domains Batch Utils', () => {
     });
 
     it('should throw on label with .', () => {
-      assert.throws(function () {
+      assert.throws(() => {
         validate(
           ['label.rsk'],
           '0x7eff3c48849197b1662365128e63564b457c3a36',
           ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200'],
           toBN('3'),
-        )
+        );
       }, {
         name: 'Error',
         message: 'Invalid label: label.rsk',
@@ -93,46 +93,46 @@ describe('RSK Domains Batch Utils', () => {
     });
 
     it('should throw on invalid owner', () => {
-      assert.throws(function () {
+      assert.throws(() => {
         validate(
           ['label'],
           '0x7eff3c48849197b1662365128e63564b457c3a3',
           ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200'],
           toBN('3'),
-        )
+        );
       }, {
         name: 'Error',
         message: 'Invalid owner',
       });
-    })
+    });
 
     it('should throw on invalid secret', () => {
-      assert.throws(function () {
+      assert.throws(() => {
         validate(
           ['label'],
           '0x7eff3c48849197b1662365128e63564b457c3a36',
           ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b1662365120'],
           toBN('3'),
-        )
+        );
       }, {
         name: 'Error',
-        message: 'Invalid secret: 0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b1662365120'
+        message: 'Invalid secret: 0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b1662365120',
       });
-    })
+    });
 
     it('should throw on invalid duration', () => {
-      assert.throws(function () {
+      assert.throws(() => {
         validate(
           ['label'],
           '0x7eff3c48849197b1662365128e63564b457c3a36',
           ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200'],
           3,
-        )
+        );
       }, {
         name: 'Error',
         message: 'Invalid duration',
       });
-    })
+    });
 
     it('should not throw on valid parameters', () => {
       validate(
@@ -141,8 +141,8 @@ describe('RSK Domains Batch Utils', () => {
         ['0x7eff3c48849197b1662365128e63564b457c3a367eff3c48849197b16623651200'],
         toBN('3'),
       );
-    })
-  })
+    });
+  });
 
   contract('make commitments', (accounts) => {
     beforeEach(async () => {
@@ -191,6 +191,6 @@ describe('RSK Domains Batch Utils', () => {
       for (let i = 0; i < expected.length; i += 1) {
         assert.equal(commitments[i], expected[i]);
       }
-    })
-  })
-})
+    });
+  });
+});

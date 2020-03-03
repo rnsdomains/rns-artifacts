@@ -4,7 +4,10 @@
   "description": "RNS Solidity artifacts.",
   "scripts": {
     "test": "npx truffle test",
-    "lint": "npx solium -d ."
+    "lint": "npm run lint:contracts && npm run lint:tests && npm run lint:utils",
+    "lint:contracts": "npx solium -d .",
+    "lint:tests": "npx eslint ./test",
+    "lint:utils": "npx eslint ./util"
   },
   "repository": {
     "type": "git",
@@ -23,16 +26,19 @@
   "dependencies": {
     "@rsksmart/erc677": "^1.0.1",
     "@rsksmart/rns-registry": "^1.0.1",
-    "@rsksmart/rns-rskregistrar": "^1.2.0"
+    "@rsksmart/rns-rskregistrar": "^1.2.0",
+    "web3-utils": "^1.2.6"
   },
   "devDependencies": {
     "@codechecks/client": "^0.1.10",
     "@openzeppelin/test-helpers": "^0.5.4",
     "@truffle/hdwallet-provider": "^1.0.30",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.20.1",
     "eth-ens-namehash": "^2.0.8",
     "eth-gas-reporter": "^0.2.14",
     "solium": "^1.2.5",
-    "truffle": "^5.1.12",
-    "web3-utils": "^1.2.6"
+    "truffle": "^5.1.12"
   }
 }

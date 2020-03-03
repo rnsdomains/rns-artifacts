@@ -1,4 +1,6 @@
-const { randomHex, isAddress, isHexStrict, isBN, sha3 } = require('web3-utils');
+const {
+  randomHex, isAddress, isHexStrict, isBN, sha3,
+} = require('web3-utils');
 
 /**
  * Creates an array of n secrets of 32 bytes
@@ -6,9 +8,9 @@ const { randomHex, isAddress, isHexStrict, isBN, sha3 } = require('web3-utils');
  * @returns {bytes32[]} secrets
  */
 function createSecrets(n) {
-  let secrets = [];
+  const secrets = [];
 
-  for (let i = 0; i < n; i+=1) {
+  for (let i = 0; i < n; i += 1) {
     secrets.push(randomHex(32));
   }
 
@@ -23,28 +25,28 @@ function createSecrets(n) {
  * @param {BN} duration for all registered domains
  */
 function validate(labels, owner, secrets, duration) {
-  if(labels.length != secrets.length) {
+  if (labels.length !== secrets.length) {
     throw new Error('Invalid amount of secrets');
   }
 
-  for (let i = 0; i < labels.length; i+=1) {
+  for (let i = 0; i < labels.length; i += 1) {
     if (!labels[i].length > 0 || !labels[i].match(/^[0-9a-z]+$/)) {
       throw new Error(`Invalid label: ${labels[i]}`);
     }
   }
 
   if (!isAddress(owner)) {
-    throw new Error(`Invalid owner`);
+    throw new Error('Invalid owner');
   }
 
-  for (let i = 0; i < secrets.length; i+=1) {
-    if(!isHexStrict(secrets[i]) || secrets[i].length !== 68) {
+  for (let i = 0; i < secrets.length; i += 1) {
+    if (!isHexStrict(secrets[i]) || secrets[i].length !== 68) {
       throw new Error(`Invalid secret: ${secrets[i]}`);
     }
   }
 
   if (!isBN(duration)) {
-    throw new Error(`Invalid duration`);
+    throw new Error('Invalid duration');
   }
 }
 
@@ -57,14 +59,13 @@ function validate(labels, owner, secrets, duration) {
  * @returns {bytes32[]} commitments created
  */
 async function makeCommitments(makeCommitment, labels, owner, secrets) {
-  let commitments = [];
+  const commitments = [];
 
-  for (let i = 0; i < labels.length; i+=1) {
-    const commitment = await makeCommitment(sha3(labels[i]), owner, secrets[i]);
-    commitments.push(commitment);
+  for (let i = 0; i < labels.length; i += 1) {
+    commitments.push(makeCommitment(sha3(labels[i]), owner, secrets[i]));
   }
 
-  return commitments;
+  return Promise.all(commitments);
 }
 
 module.exports = {
