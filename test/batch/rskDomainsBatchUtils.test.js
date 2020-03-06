@@ -4,11 +4,13 @@ const NodeOwner = artifacts.require('NodeOwner');
 const NamePrice = artifacts.require('NamePrice');
 const BytesUtils = artifacts.require('BytesUtils');
 const FIFSRegistrar = artifacts.require('FIFSRegistrar');
+const RSKDomainsBatch = artifacts.require('RSKDomainsBatch');
 
 const { toBN } = require('web3-utils');
 const assert = require('assert');
+const { time } = require('@openzeppelin/test-helpers');
 const namehash = require('eth-ens-namehash');
-const { createSecrets, validate, makeCommitments } = require('../../util/batch/rskDomainsBatchUtils');
+const { createSecrets, validate, makeCommitments, pollUntilCommitted } = require('../../util/batch/rskDomainsBatchUtils');
 
 describe('RSK Domains Batch Utils', () => {
   describe('create secrets', async () => {
@@ -191,6 +193,85 @@ describe('RSK Domains Batch Utils', () => {
       for (let i = 0; i < expected.length; i += 1) {
         assert.equal(commitments[i], expected[i]);
       }
+    });
+  });
+
+  contract('poll commitments', async (accounts) => {
+    beforeEach(async () => {
+      this.rif = await ERC677.new(
+        accounts[0],
+        web3.utils.toBN('1000000000000000000000'),
+        'RIF',
+        'RIF',
+        web3.utils.toBN('18'),
+      );
+
+      const rootNode = namehash.hash('rsk');
+
+      const rns = await RNS.new();
+      this.nodeOwner = await NodeOwner.new(rns.address, rootNode);
+      const namePrice = await NamePrice.new();
+
+      const bytesUtils = await BytesUtils.new();
+      await FIFSRegistrar.link('BytesUtils', bytesUtils.address);
+
+      this.fifs = await FIFSRegistrar.new(
+        this.rif.address,
+        this.nodeOwner.address,
+        accounts[1],
+        namePrice.address,
+      );
+
+      this.batch = await RSKDomainsBatch.new(this.fifs.address);
+    });
+
+    it('should reject promise when rest time elapsed', async () => {
+      const commitments = await makeCommitments(
+        this.fifs.makeCommitment,
+        ['label0', 'label1', 'label2', 'label3', 'label4'],
+        accounts[0],
+        createSecrets(5),
+      );
+
+      const commitments2 = await makeCommitments(
+        this.fifs.makeCommitment,
+        ['label5', 'label6', 'label7', 'label8', 'label9'],
+        accounts[0],
+        createSecrets(5),
+      );
+
+      await this.batch.batchCommit(commitments);
+      await this.batch.batchCommit(commitments2);
+
+      await assert.rejects(
+        pollUntilCommitted(this.fifs.canReveal, [commitments, commitments2], 60000),
+        new Error('Polling timeout'),
+      );
+    });
+
+    it('should resolve promise when commitment time for all commitments elapsed', async () => {
+      const commitments = await makeCommitments(
+        this.fifs.makeCommitment,
+        ['label0', 'label1', 'label2', 'label3', 'label4'],
+        accounts[0],
+        createSecrets(5),
+      );
+
+      const commitments2 = await makeCommitments(
+        this.fifs.makeCommitment,
+        ['label5', 'label6', 'label7', 'label8', 'label9'],
+        accounts[0],
+        createSecrets(5),
+      );
+
+      await this.batch.batchCommit(commitments);
+      await this.batch.batchCommit(commitments2);
+
+      await time.increase(time.duration.minutes('1'));
+
+      const result = await pollUntilCommitted(this.fifs.canReveal, [commitments, commitments2]);
+
+      assert(result);
     });
   });
 });
