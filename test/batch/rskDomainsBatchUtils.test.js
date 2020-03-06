@@ -217,7 +217,10 @@ describe('RSK Domains Batch Utils', () => {
       const rootNode = namehash.hash('rsk');
 
       const rns = await RNS.new();
+
       this.nodeOwner = await NodeOwner.new(rns.address, rootNode);
+      await rns.setSubnodeOwner('0x00', web3.utils.sha3('rsk'), this.nodeOwner.address);
+
       const namePrice = await NamePrice.new();
 
       const bytesUtils = await BytesUtils.new();
@@ -229,8 +232,9 @@ describe('RSK Domains Batch Utils', () => {
         accounts[1],
         namePrice.address,
       );
+      await this.nodeOwner.addRegistrar(this.fifs.address);
 
-      this.batch = await RSKDomainsBatch.new(this.fifs.address);
+      this.batch = await RSKDomainsBatch.new(this.fifs.address, this.rif.address);
     });
 
     it('should reject promise when rest time elapsed', async () => {
@@ -312,22 +316,27 @@ describe('RSK Domains Batch Utils', () => {
       ];
       const duration = web3.utils.toBN('20');
 
+      const price = await this.fifs.price('', web3.utils.toBN('0'), duration);
+
       const expected = [
-        `${web3.utils.sha3('register(string,address,bytes32,uint)').slice(0, 10)
-        }0000011111222223333344444555556666677777`
-        + '1234000000000000000000000000000000000000000000000000000000001234'
-        + '0000000000000000000000000000000000000000000000000000000000000014'
-        + '696c616e6f6c6b696573',
-        `${web3.utils.sha3('register(string,address,bytes32,uint)').slice(0, 10)
-        }0000011111222223333344444555556666677777`
-        + '5678000000000000000000000000000000000000000000000000000000005678'
-        + '0000000000000000000000000000000000000000000000000000000000000014'
-        + '696c616e6f6c6b69657332',
+        price,
+        [
+          `${web3.utils.sha3('register(string,address,bytes32,uint)').slice(0, 10)
+          }0000011111222223333344444555556666677777`
+          + '1234000000000000000000000000000000000000000000000000000000001234'
+          + '0000000000000000000000000000000000000000000000000000000000000014'
+          + '696c616e6f6c6b696573',
+          `${web3.utils.sha3('register(string,address,bytes32,uint)').slice(0, 10)
+          }0000011111222223333344444555556666677777`
+          + '5678000000000000000000000000000000000000000000000000000000005678'
+          + '0000000000000000000000000000000000000000000000000000000000000014'
+          + '696c616e6f6c6b69657332',
+        ],
       ];
 
-      const actual = encodeRegister(labels, owner, secrets, duration);
+      const actual = await encodeRegister(labels, owner, secrets, duration, this.fifs.price);
 
-      assert(Buffer.compare(actual, rlp.encode(expected)) === 0);
+      assert.equal(actual, `0x${rlp.encode(expected).toString('hex')}`);
     });
   });
 });

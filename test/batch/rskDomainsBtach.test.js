@@ -9,9 +9,11 @@ const RSKDomainsBatch = artifacts.require('RSKDomainsBatch');
 const assert = require('assert');
 const namehash = require('eth-ens-namehash');
 const { time } = require('@openzeppelin/test-helpers');
-const { createSecrets, makeCommitments } = require('../../util/batch/rskDomainsBatchUtils');
+const {
+  createSecrets, makeCommitments, encodeOneRegister, encodeRegister,
+} = require('../../util/batch/rskDomainsBatchUtils');
 
-contract('make commitments', (accounts) => {
+contract('RSK Domains Batch', (accounts) => {
   beforeEach(async () => {
     this.rif = await ERC677.new(
       accounts[0],
@@ -24,7 +26,10 @@ contract('make commitments', (accounts) => {
     const rootNode = namehash.hash('rsk');
 
     const rns = await RNS.new();
+
     this.nodeOwner = await NodeOwner.new(rns.address, rootNode);
+    await rns.setSubnodeOwner('0x00', web3.utils.sha3('rsk'), this.nodeOwner.address);
+
     const namePrice = await NamePrice.new();
 
     const bytesUtils = await BytesUtils.new();
@@ -36,67 +41,153 @@ contract('make commitments', (accounts) => {
       accounts[1],
       namePrice.address,
     );
+    await this.nodeOwner.addRegistrar(this.fifs.address);
 
-    const labels = ['label0', 'label1', 'label2', 'label3', 'label4'];
-
-    this.commitments = await makeCommitments(
-      this.fifs.makeCommitment,
-      labels,
-      accounts[0],
-      createSecrets(labels.length),
-    );
-
-    this.batch = await RSKDomainsBatch.new(this.fifs.address);
+    this.batch = await RSKDomainsBatch.new(this.fifs.address, this.rif.address);
   });
 
-  it('should commit to fifs registrar', async () => {
-    await this.batch.batchCommit(this.commitments);
+  describe('make commitments', async () => {
+    it('should commit to fifs registrar', async () => {
+      const labels = ['label0', 'label1', 'label2', 'label3', 'label4'];
 
-    await time.increase(time.duration.minutes('1'));
+      const commitments = await makeCommitments(
+        this.fifs.makeCommitment,
+        labels,
+        accounts[0],
+        createSecrets(labels.length),
+      );
 
-    const canRevealAll = [];
+      await this.batch.batchCommit(commitments);
 
-    for (let i = 0; i < this.commitments.length; i += 1) {
-      canRevealAll.push(this.fifs.canReveal(this.commitments[i]));
-    }
+      await time.increase(time.duration.minutes('1'));
 
-    const result = await Promise.all(canRevealAll);
+      const canRevealAll = [];
 
-    for (let i = 0; i < this.commitments.length; i += 1) {
-      assert(result[i]);
-    }
+      for (let i = 0; i < commitments.length; i += 1) {
+        canRevealAll.push(this.fifs.canReveal(commitments[i]));
+      }
+
+      const result = await Promise.all(canRevealAll);
+
+      for (let i = 0; i < commitments.length; i += 1) {
+        assert(result[i]);
+      }
+    });
+
+    it('saturation test', async () => {
+      const labels = [];
+
+      const length = 250;
+
+      for (let i = 0; i < length; i += 1) {
+        labels.push(`label${i}`);
+      }
+
+      const commitments = await makeCommitments(
+        this.fifs.makeCommitment,
+        labels,
+        accounts[0],
+        createSecrets(length),
+      );
+
+      await this.batch.batchCommit(commitments);
+
+      await time.increase(time.duration.minutes('1'));
+
+      const canRevealAll = [];
+
+      for (let i = 0; i < length; i += 1) {
+        canRevealAll.push(this.fifs.canReveal(commitments[i]));
+      }
+
+      const result = await Promise.all(canRevealAll);
+
+      for (let i = 0; i < length; i += 1) {
+        assert(result[i]);
+      }
+    });
+
+    it('should allow to register domains after committing', async () => {
+      const labels = ['label0', 'label1', 'label2', 'label3', 'label4'];
+      const owner = accounts[0];
+      const secrets = createSecrets(labels.length);
+
+      const commitments = await makeCommitments(
+        this.fifs.makeCommitment,
+        labels,
+        owner,
+        secrets,
+      );
+
+      await this.batch.batchCommit(commitments);
+
+      await time.increase(time.duration.minutes('1'));
+
+      const registerAll = [];
+
+      for (let i = 0; i < commitments.length; i += 1) {
+        registerAll.push(
+          this.rif.transferAndCall(
+            this.fifs.address,
+            web3.utils.toBN('2000000000000000000'),
+            encodeOneRegister(labels[i], owner, secrets[i], web3.utils.toBN('1')),
+          ),
+        );
+      }
+
+      await Promise.all(registerAll);
+
+      const allCurrentOwners = [];
+
+      for (let i = 0; i < commitments.length; i += 1) {
+        allCurrentOwners.push(this.nodeOwner.ownerOf(web3.utils.sha3(labels[i])));
+      }
+
+      const currentOwners = await Promise.all(allCurrentOwners);
+
+      for (let i = 0; i < commitments.length; i += 1) {
+        assert.equal(currentOwners[i], owner);
+      }
+    });
   });
 
-  it('saturation test', async () => {
-    const labels = [];
+  describe('reveal commitments', async () => {
+    it('should transfer and call to fifs registrar', async () => {
+      const labels = [
+        'ilanolkies', 'ilanolkies2',
+      ];
+      const owner = accounts[0];
+      const secrets = createSecrets(labels.length);
+      const duration = web3.utils.toBN('20');
 
-    const length = 250;
+      const commitments = await makeCommitments(
+        this.fifs.makeCommitment,
+        labels,
+        owner,
+        secrets,
+      );
 
-    for (let i = 0; i < length; i += 1) {
-      labels.push(`label${i}`);
-    }
+      await this.batch.batchCommit(commitments);
 
-    const commitments = await makeCommitments(
-      this.fifs.makeCommitment,
-      labels,
-      accounts[0],
-      createSecrets(length),
-    );
+      await time.increase(time.duration.minutes('1'));
 
-    await this.batch.batchCommit(commitments);
+      const data = await encodeRegister(labels, owner, secrets, duration, this.fifs.price);
 
-    await time.increase(time.duration.minutes('1'));
+      const cost = (await this.fifs.price('', web3.utils.toBN('0'), duration)).mul(web3.utils.toBN('2'));
 
-    const canRevealAll = [];
+      await this.rif.transferAndCall(this.batch.address, cost, data);
 
-    for (let i = 0; i < length; i += 1) {
-      canRevealAll.push(this.fifs.canReveal(commitments[i]));
-    }
+      const owners = [];
 
-    const result = await Promise.all(canRevealAll);
+      for (let i = 0; i < labels.length; i += 1) {
+        owners.push(this.nodeOwner.ownerOf(web3.utils.sha3(labels[i])));
+      }
 
-    for (let i = 0; i < length; i += 1) {
-      assert(result[i]);
-    }
+      await Promise.all(owners).then((result) => {
+        for (let i = 0; i < result.length; i += 1) {
+          assert.equal(result[i], owner);
+        }
+      });
+    });
   });
 });

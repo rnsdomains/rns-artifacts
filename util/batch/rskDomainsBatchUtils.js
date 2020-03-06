@@ -134,15 +134,18 @@ function encodeOneRegister(label, owner, secret, duration) {
  * @param {address} owner for all registered domains
  * @param {bytes32[]} secrets for each of the names
  * @param {BN} duration for all registered domains
+ * @param {Promise<BN>} price contract function for `price`
  */
-function encodeRegister(labels, owner, secrets, duration) {
+async function encodeRegister(labels, owner, secrets, duration, price) {
   const datas = [];
 
   for (let i = 0; i < labels.length; i += 1) {
     datas.push(encodeOneRegister(labels[i], owner, secrets[i], duration));
   }
 
-  return rlp.encode(datas);
+  const cost = await price('', 0, duration);
+
+  return `0x${rlp.encode([cost, datas]).toString('hex')}`;
 }
 
 module.exports = {
