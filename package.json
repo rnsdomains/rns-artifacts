@@ -27,6 +27,7 @@
     "@rsksmart/erc677": "^1.0.1",
     "@rsksmart/rns-registry": "^1.0.1",
     "@rsksmart/rns-rskregistrar": "^1.2.0",
+    "rlp": "^2.2.4",
     "web3-utils": "^1.2.6"
   },
   "devDependencies": {

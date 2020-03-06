@@ -1,6 +1,7 @@
 const {
-  randomHex, isAddress, isHexStrict, isBN, sha3,
+  randomHex, isAddress, isHexStrict, isBN, sha3, numberToHex, padLeft, asciiToHex,
 } = require('web3-utils');
+const rlp = require('rlp');
 
 /**
  * Creates an array of n secrets of 32 bytes
@@ -90,14 +91,58 @@ async function pollUntilCommitted(canReveal, commitmentLists, interval = 5000, t
       allRevealChecks.push(canReveal(lastCommits[i]));
     }
 
-    Promise.all(allRevealChecks).then(result => {
-      if (result.every(r => r)) resolve(result);
+    Promise.all(allRevealChecks).then((result) => {
+      if (result.every((r) => r)) resolve(result);
       else if (Number(new Date()) < endTime) setTimeout(poll, interval, resolve, reject);
       else reject(new Error('Polling timeout'));
     });
-  }
+  };
 
   return new Promise(poll);
+}
+
+const REGISTER_SIGNATURE = '0xc2c414c8';
+
+/**
+ * Encodes one register data to use with transferAndCall.
+ * Assumes that parameters were validated with `validate`.
+ * @param {string} label of the domain to be registered
+ * @param {address} owner for all registered domains
+ * @param {bytes32} secret valid for the commitment
+ * @param {BN} duration for all registered domains
+ */
+function encodeOneRegister(label, owner, secret, duration) {
+  const parsedOwner = owner.toLowerCase().slice(2);
+
+  const parsedSecret = secret.slice(2);
+
+  const parsedDuration = padLeft(
+    numberToHex(duration).slice(2),
+    64,
+    '0',
+  );
+
+  const parsedLabel = asciiToHex(label).slice(2);
+
+  return `${REGISTER_SIGNATURE}${parsedOwner}${parsedSecret}${parsedDuration}${parsedLabel}`;
+}
+
+/**
+ * Encodes (rlp) register data to use with transferAndCall.
+ * Assumes that parameters were validated with `validate`.
+ * @param {string[]} labels of the domains to be registered
+ * @param {address} owner for all registered domains
+ * @param {bytes32[]} secrets for each of the names
+ * @param {BN} duration for all registered domains
+ */
+function encodeRegister(labels, owner, secrets, duration) {
+  const datas = [];
+
+  for (let i = 0; i < labels.length; i += 1) {
+    datas.push(encodeOneRegister(labels[i], owner, secrets[i], duration));
+  }
+
+  return rlp.encode(datas);
 }
 
 module.exports = {
@@ -105,4 +150,6 @@ module.exports = {
   validate,
   makeCommitments,
   pollUntilCommitted,
+  encodeOneRegister,
+  encodeRegister,
 };

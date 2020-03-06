@@ -10,7 +10,15 @@ const { toBN } = require('web3-utils');
 const assert = require('assert');
 const { time } = require('@openzeppelin/test-helpers');
 const namehash = require('eth-ens-namehash');
-const { createSecrets, validate, makeCommitments, pollUntilCommitted } = require('../../util/batch/rskDomainsBatchUtils');
+const rlp = require('rlp');
+const {
+  createSecrets,
+  validate,
+  makeCommitments,
+  pollUntilCommitted,
+  encodeOneRegister,
+  encodeRegister,
+} = require('../../util/batch/rskDomainsBatchUtils');
 
 describe('RSK Domains Batch Utils', () => {
   describe('create secrets', async () => {
@@ -272,6 +280,54 @@ describe('RSK Domains Batch Utils', () => {
       const result = await pollUntilCommitted(this.fifs.canReveal, [commitments, commitments2]);
 
       assert(result);
+    });
+  });
+
+  describe('encode registration', async () => {
+    it('should encode one', () => {
+      const label = 'ilanolkies';
+      const owner = '0x0000011111222223333344444555556666677777';
+      const secret = '0x1234000000000000000000000000000000000000000000000000000000001234';
+      const duration = web3.utils.toBN('20');
+
+      const expected = `${web3.utils.sha3('register(string,address,bytes32,uint)').slice(0, 10) // signature 4b
+      }0000011111222223333344444555556666677777` // address 20b - offset 4b
+        + '1234000000000000000000000000000000000000000000000000000000001234' // secret 32b - offset 24b
+        + '0000000000000000000000000000000000000000000000000000000000000014' // duration 32b - offset 56b
+        + '696c616e6f6c6b696573'; // name - offset 88b
+
+      const actual = encodeOneRegister(label, owner, secret, duration);
+
+      assert.equal(actual, expected);
+    });
+
+    it('should rlp encode many', async () => {
+      const labels = [
+        'ilanolkies', 'ilanolkies2',
+      ];
+      const owner = '0x0000011111222223333344444555556666677777';
+      const secrets = [
+        '0x1234000000000000000000000000000000000000000000000000000000001234',
+        '0x5678000000000000000000000000000000000000000000000000000000005678',
+      ];
+      const duration = web3.utils.toBN('20');
+
+      const expected = [
+        `${web3.utils.sha3('register(string,address,bytes32,uint)').slice(0, 10)
+        }0000011111222223333344444555556666677777`
+        + '1234000000000000000000000000000000000000000000000000000000001234'
+        + '0000000000000000000000000000000000000000000000000000000000000014'
+        + '696c616e6f6c6b696573',
+        `${web3.utils.sha3('register(string,address,bytes32,uint)').slice(0, 10)
+        }0000011111222223333344444555556666677777`
+        + '5678000000000000000000000000000000000000000000000000000000005678'
+        + '0000000000000000000000000000000000000000000000000000000000000014'
+        + '696c616e6f6c6b69657332',
+      ];
+
+      const actual = encodeRegister(labels, owner, secrets, duration);
+
+      assert(Buffer.compare(actual, rlp.encode(expected)) === 0);
     });
   });
 });
