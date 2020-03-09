@@ -17,7 +17,7 @@ contract('RSK Domains Batch', (accounts) => {
   beforeEach(async () => {
     this.rif = await ERC677.new(
       accounts[0],
-      web3.utils.toBN('1000000000000000000000'),
+      web3.utils.toBN('1000000000000000000000000'),
       'RIF',
       'RIF',
       web3.utils.toBN('18'),
@@ -189,5 +189,48 @@ contract('RSK Domains Batch', (accounts) => {
         }
       });
     });
+
+    it('saturation test', async () => {
+      const labels = [];
+
+      const length = 35;
+
+      for (let i = 0; i < length; i += 1) {
+        labels.push(`label${i}`);
+      }
+
+      const owner = accounts[0];
+      const secrets = createSecrets(labels.length);
+      const duration = web3.utils.toBN('20');
+
+      const commitments = await makeCommitments(
+        this.fifs.makeCommitment,
+        labels,
+        owner,
+        secrets,
+      );
+
+      await this.batch.batchCommit(commitments);
+
+      await time.increase(time.duration.minutes('1'));
+
+      const data = await encodeRegister(labels, owner, secrets, duration, this.fifs.price);
+
+      const cost = (await this.fifs.price('', web3.utils.toBN('0'), duration)).mul(web3.utils.toBN(labels.length));
+
+      await this.rif.transferAndCall(this.batch.address, cost, data);
+
+      const owners = [];
+
+      for (let i = 0; i < labels.length; i += 1) {
+        owners.push(this.nodeOwner.ownerOf(web3.utils.sha3(labels[i])));
+      }
+
+      await Promise.all(owners).then((result) => {
+        for (let i = 0; i < result.length; i += 1) {
+          assert.equal(result[i], owner);
+        }
+      });
+    })
   });
 });
