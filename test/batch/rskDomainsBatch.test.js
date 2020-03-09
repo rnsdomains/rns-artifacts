@@ -231,6 +231,6 @@ contract('RSK Domains Batch', (accounts) => {
           assert.equal(result[i], owner);
         }
       });
-    })
+    });
   });
 });
