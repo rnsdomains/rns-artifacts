@@ -16,7 +16,7 @@ module.exports = (deployer, network, accounts) => {
       fifsAddress = '0x36ffda909f941950a552011f2c50569fda14a169';
       rifAddress = '0x19f64674d8a5b4e652319f5e239efd3bc969a1fe';
     } else if (network === 'rskMainnet') {
-      fifsAddress = '0xd9c79ced86ecf49f5e4a973594634c83197c35ab';
+      fifsAddress = '0x779195c53cc7c1a33bd2eea5f63f2c1da8798d61';
       rifAddress = '0x2acc95758f8b5f583470ba265eb685a8f45fc9d5';
     } else {
       const rif = await ERC677.new(

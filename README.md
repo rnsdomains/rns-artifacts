@@ -13,7 +13,7 @@ RNS Solidity artifacts.
 
 - Batch
   - .rsk Domains:
-    - RSK Mainnet [0xb31edf7ff95e57882f2e78a683f22ab03c535c0a](https://explorer.rsk.co/address/0xb31edf7ff95e57882f2e78a683f22ab03c535c0a)
+    - RSK Mainnet [0x2beb2819e110b34c802c761e737470760af2057f](https://explorer.rsk.co/address/0x2beb2819e110b34c802c761e737470760af2057f)
     - RSK Testnet [0x380a47e2a1cec8a21cf00374ea5d092166a702fc](https://explorer.testnet.rsk.co/address/0x380a47e2a1cec8a21cf00374ea5d092166a702fc)
 
 ## Development
