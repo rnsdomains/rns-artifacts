@@ -1,4 +1,4 @@
-pragma solidity ^0.5.3;
+pragma solidity ^0.5.11;
 
 import "@rsksmart/rns-registry/contracts/RNS.sol";
 import "@rsksmart/erc677/contracts/ERC677.sol";
