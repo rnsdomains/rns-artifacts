@@ -18,7 +18,7 @@
     "rif",
     "rns"
   ],
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/rnsdomains/rns-artifacts/issues"
   },
